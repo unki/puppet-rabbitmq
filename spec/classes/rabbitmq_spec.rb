@@ -1738,6 +1738,50 @@ describe 'rabbitmq' do
 
         it { is_expected.not_to contain_service('rabbitmq-server') }
       end
+
+
+      describe 'mass production' do
+        let :params do
+          {
+            'bindings' => { 'a_binding@a_queue@a_vhost' => {
+              'destination_type' => 'queue',
+            }},
+            'default_bindings' => { 'b_bindings' => {
+              'destination_type' => 'queue',
+            }},
+            'exchanges' => { 'a_exchange@a_vhost' => {
+              'type' => 'direct',
+            }},
+            'default_exchanges' => { 'b_exchange' => {
+              'type' => 'direct',
+            }},
+            'plugins' => { 'a_plugin' => {
+              'ensure' => 'present',
+            }},
+            'policies' => { 'a_policy@a_vhost' => {
+              'pattern' => '.*',
+            }},
+            'default_policies' => { 'b_policy' => {
+              'pattern' => '.*',
+            }},
+            'queues' => { 'a_queue@vhost' => {
+              'durable' => 'true',
+            }},
+            'default_queue' => { 'b_queue' => {
+              'durable' => 'true',
+            }},
+            'user_permissions' => { 'a_user@a_vhost' => {
+              'configure_permissions' => '.*',
+            }},
+            'default_user_permissions' => { 'b_user' => {
+              'configure_permissions' => '.*',
+            }},
+            'vhosts' => { 'b_vhost' => {
+              'ensure' => 'present',
+            }},
+          }
+        end
+      end
     end
   end
 end
