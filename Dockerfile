@@ -1,6 +1,7 @@
-FROM ruby:2.5.3
+FROM ruby:2.5
 
 WORKDIR /opt/puppet
+ENV LANG=C.UTF-8
 
 # https://github.com/puppetlabs/puppet/blob/06ad255754a38f22fb3a22c7c4f1e2ce453d01cb/lib/puppet/provider/service/runit.rb#L39
 RUN mkdir -p /etc/sv
