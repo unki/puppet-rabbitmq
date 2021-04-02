@@ -92,6 +92,8 @@
 #   An array specifying authorization/authentication backend to use. Single quotes should be placed around array entries,
 #   ex. `['{foo, baz}', 'baz']` Defaults to [rabbit_auth_backend_internal], and if using LDAP defaults to [rabbit_auth_backend_internal,
 #   rabbit_auth_backend_ldap].
+# @param bindings
+#   Mass production rabbitmq_binding resources
 # @param cluster_node_type
 #   Choose between disc and ram nodes.
 # @param cluster_nodes
@@ -122,10 +124,20 @@
 #   Hash of static shovel configurations
 # @param config_variables
 #   To set config variables in rabbitmq.config
-# @param default_user
-#   Username to set for the `default_user` in rabbitmq.config.
+# @param default_bindings
+#   Declare default rabbitmq_binding resources for every vhost declared in $vhosts
+# @param default_exchanges
+#   Declare default rabbitmq_exchange resources for every vhost declared in $vhosts
 # @param default_pass
 #   Password to set for the `default_user` in rabbitmq.config.
+# @param default_policies
+#   Declare default rabbitmq_policie resources for every vhost declared in $vhosts
+# @param default_queues
+#   Declare default rabbitmq_queue resources for every vhost declared in $vhosts
+# @param default_user
+#   Username to set for the `default_user` in rabbitmq.config.
+# @param default_user_permissions
+#   Declare default rabbitmq_user_permissions resources for every declared in vhost
 # @param delete_guest_user
 #   Controls whether default guest user is deleted.
 # @param env_config
@@ -138,6 +150,8 @@
 #   The erlang cookie to use for clustering - must be the same between all nodes. This value has no default and must be
 #   set explicitly if using clustering. If you run Pacemaker and you don't want to use RabbitMQ buildin cluster, you can set config_cluster
 #   to 'False' and set 'erlang_cookie'.
+# @param exchanges
+#   Mass production rabbitmq_exchange resources
 # @param file_limit
 #   Set rabbitmq file ulimit. Defaults to 16384. Only available on systems with `$::osfamily == 'Debian'` or `$::osfamily == 'RedHat'`.
 # @param heartbeat
@@ -196,10 +210,16 @@
 #   override this parameter for Debian OS family.
 # @param package_name
 #   Name(s) of the package(s) to install
+# @param plugins
+#   Mass production rabbitmq_plugin resources
+# @param policies
+#   Mass production rabbitmq_policy resources
 # @param port
 #   The RabbitMQ port.
 # @param python_package
 #   Name of the package required by rabbitmqadmin.
+# @param queues
+#   Mass production rabbitmq_queue resources
 # @param repos_ensure
 #   Ensure that a repo with the official (and newer) RabbitMQ package is configured, along with its signing key.
 #   Defaults to false (use system packages). This does not ensure that soft dependencies (like EPEL on RHEL systems) are present.
@@ -292,6 +312,12 @@
 #   Corresponds to recbuf in RabbitMQ `tcp_listen_options`
 # @param tcp_sndbuf
 #   Integer, corresponds to sndbuf in RabbitMQ `tcp_listen_options`
+# @param user_permissions
+#   Mass production rabbitmq_user_permissions resources
+# @param users
+#   Mass production rabbitmq_user resources
+# @param vhosts
+#   Mass production rabbitmq_vhost resources
 # @param wipe_db_on_cookie_change
 #   Boolean to determine if we should DESTROY AND DELETE the RabbitMQ database.
 # @param rabbitmq_user
@@ -311,6 +337,7 @@ class rabbitmq (
   Boolean $admin_enable                                                                            = true,
   Boolean $management_enable                                                                       = false,
   Boolean $use_config_file_for_plugins                                                             = false,
+  Hash[String, Any] $bindings                                                                      = {},
   Enum['ram', 'disc'] $cluster_node_type                                                           = 'disc',
   Array $cluster_nodes                                                                             = [],
   String $config                                                                                   = 'rabbitmq/rabbitmq.config.erb',
@@ -320,12 +347,18 @@ class rabbitmq (
   Boolean $config_stomp                                                                            = false,
   Boolean $config_shovel                                                                           = false,
   Hash $config_shovel_statics                                                                      = {},
-  String $default_user                                                                             = 'guest',
+  Hash[String, Any] $default_bindings                                                              = {},
+  Hash[String, Any] $default_exchanges                                                             = {},
   String $default_pass                                                                             = 'guest',
+  Hash[String, Any] $default_policies                                                              = {},
+  Hash[String, Any] $default_queues                                                                = {},
+  String $default_user                                                                             = 'guest',
+  Hash[String, Any] $default_user_permissions                                                      = {},
   Boolean $delete_guest_user                                                                       = false,
   String $env_config                                                                               = 'rabbitmq/rabbitmq-env.conf.erb',
   Stdlib::Absolutepath $env_config_path                                                            = '/etc/rabbitmq/rabbitmq-env.conf',
   Optional[String] $erlang_cookie                                                                  = undef,
+  Hash[String, Any] $exchanges                                                                     = {},
   Optional[String] $interface                                                                      = undef,
   Optional[String] $management_ip_address                                                          = undef,
   Integer[1, 65535] $management_port                                                               = 15672,
@@ -340,6 +373,12 @@ class rabbitmq (
   Optional[String] $package_provider                                                               = undef,
   Boolean $repos_ensure                                                                            = false,
   Boolean $manage_python                                                                           = true,
+  Hash[String, Any] $plugins                                                                       = {},
+  Hash[String, Any] $policies                                                                      = {},
+  Hash[String, Any] $queues                                                                        = {},
+  Hash[String, Any] $users                                                                         = {},
+  Hash[String, Any] $user_permissions                                                              = {},
+  Hash[String, Any] $vhosts                                                                        = {},
   String $python_package                                                                           = 'python',
   String $rabbitmq_user                                                                            = 'rabbitmq',
   String $rabbitmq_group                                                                           = 'rabbitmq',
@@ -533,4 +572,7 @@ class rabbitmq (
 
   # Make sure the various providers have their requirements in place.
   Class['rabbitmq::install'] -> Rabbitmq_plugin<| |>
+
+  # Mass production resources
+  contain rabbitmq::mass_production
 }
